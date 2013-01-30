@@ -19,7 +19,7 @@ class Grid extends GridTools
     /**
      * @var \Symfony\Component\DependencyInjection\Container
      */
-    private $container;
+    protected $container;
 
     /**
      * @var \Knp\Component\Pager\Paginator
@@ -49,7 +49,7 @@ class Grid extends GridTools
     /**
      * @var \Symfony\Component\HttpFoundation\Session;
      */
-    private $session;
+    protected $session;
 
     /**
      * @var array
@@ -61,14 +61,14 @@ class Grid extends GridTools
      */
     protected $caption;
 
-    private $onlyData;
+    protected $onlyData;
 
-    private $qb;
-    private $name;
-    private $options;
-    private $routeforced;
-    private $hideifempty;
-    private $navOptions;
+    protected $qb;
+    protected $name;
+    protected $options;
+    protected $routeforced;
+    protected $hideifempty;
+    protected $navOptions;
 
     /**
      * @var string
@@ -83,12 +83,14 @@ class Grid extends GridTools
     /**
      * @var string
      */
-    private $hash;
+    protected $hash;
 
     /**
      * @var \EPS\JqGridBundle\Grid\Grid
      */
     protected $subGrid;
+
+    protected $count;
 
     /**
      * @param \Symfony\Component\DependencyInjection\Container $container
@@ -97,6 +99,7 @@ class Grid extends GridTools
     {
         $this->container = $container;
 
+        $this->count = null;
         $this->router = $this->container->get('router');
         $this->request = $this->container->get('request');
         $this->session = $this->request->getSession();
@@ -311,7 +314,7 @@ class Grid extends GridTools
     {
         return $this->subGrid;
     }
-    
+
     /**
      * @return \Doctrine\ORM\QueryBuilder
      */
@@ -319,8 +322,6 @@ class Grid extends GridTools
     {
         return $this->qb;
     }
-    
-    
 
     public function render()
     {
@@ -358,7 +359,12 @@ class Grid extends GridTools
                 $this->generateFilters();
             }
 
-            $pagination = $this->paginator->paginate($this->qb->getQuery()->setHydrationMode(Query::HYDRATE_ARRAY), $page, $limit);
+            $query = $this->qb->getQuery();
+
+            if (null != $this->count) {
+                $query->setHint(\Knp\Component\Pager\Event\Subscriber\Paginate\Doctrine\ORM\QuerySubscriber::HINT_COUNT, $this->count);
+            }
+            $pagination = $this->paginator->paginate($query->setHydrationMode(Query::HYDRATE_ARRAY), $page, $limit);
 
             $nbRec = $pagination->getTotalItemCount();
 
@@ -488,6 +494,16 @@ class Grid extends GridTools
                 }
             }
         }
+    }
+
+    public function setCount($count)
+    {
+        $this->count = $count;
+    }
+
+    public function getCount()
+    {
+        return $this->count;
     }
 
 }
