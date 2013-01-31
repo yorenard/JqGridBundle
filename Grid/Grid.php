@@ -367,7 +367,9 @@ class Grid extends GridTools
             $pagination = $this->paginator->paginate($query->setHydrationMode(Query::HYDRATE_ARRAY), $page, $limit);
 
             $nbRec = $pagination->getTotalItemCount();
-
+            if (null == $this->count) {
+                $this->count = $nbRec;
+            }
             if ($nbRec > 0) {
                 $total_pages = ceil($nbRec / $limit);
             } else {
